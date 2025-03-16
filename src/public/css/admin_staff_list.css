@@ -1,0 +1,38 @@
+.staff-list-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.staff-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.staff-table th,
+.staff-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.staff-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+.detail-link {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}

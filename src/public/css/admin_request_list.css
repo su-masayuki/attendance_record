@@ -1,0 +1,57 @@
+.request-list-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.tab-menu {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.tab-menu button {
+    padding: 10px 20px;
+    border: none;
+    background: #ddd;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.tab-menu .active {
+    background: black;
+    color: white;
+}
+
+.request-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.request-table th,
+.request-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.request-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+.detail-link {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
