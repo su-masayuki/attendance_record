@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -43,23 +45,29 @@ class FortifyServiceProvider extends ServiceProvider
 
         // 認証処理の分岐
         Fortify::authenticateUsing(function (Request $request) {
+            $loginRequest = app(LoginRequest::class);
+            $validator = Validator::make($request->all(), $loginRequest->rules(), $loginRequest->messages());
+            if ($validator->fails()) {
+                throw new \Illuminate\Validation\ValidationException($validator);
+            }
+
             if ($request->is('admin/*')) {
                 $admin = \App\Models\Admin::where('email', $request->email)->first();
 
                 if ($admin && Hash::check($request->password, $admin->password)) {
-                    Auth::guard('admin')->login($admin); // 管理者をログイン
+                    Auth::guard('admin')->login($admin);
                     return $admin;
                 }
             } else {
                 $user = \App\Models\User::where('email', $request->email)->first();
 
                 if ($user && Hash::check($request->password, $user->password)) {
-                    Auth::guard('web')->login($user); // 一般ユーザーをログイン
+                    Auth::guard('web')->login($user);
                     return $user;
                 }
             }
 
-            return null; // 認証失敗時は `null` を返す
+            return null;
         });
 
         // ログイン後のリダイレクト先

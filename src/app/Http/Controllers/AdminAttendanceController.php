@@ -24,6 +24,9 @@ class AdminAttendanceController extends Controller
         // 指定されたIDの勤怠情報を取得
         $attendance = Attendance::with('user')->findOrFail($id);
 
-        return view('admin_attendance_detail', compact('attendance'));
+        // `date` カラムが null の場合は `created_at` を使用
+        $attendanceDate = $attendance->date ?? $attendance->created_at;
+
+            return view('admin_attendance_detail', compact('attendance', 'attendanceDate'));
     }
 }

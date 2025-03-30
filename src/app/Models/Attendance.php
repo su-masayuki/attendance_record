@@ -18,19 +18,36 @@ class Attendance extends Model
         'break_end',
     ];
 
+    protected $dates = [
+        'clock_in',
+        'clock_out',
+        'break_start',
+        'break_end',
+        'date',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function requests()
+    public function stampCorrections()
     {
         return $this->hasMany(StampCorrection::class, 'attendance_id');
     }
 
-    public function stampCorrections()
+    public function breakTimes()
     {
-        return $this->hasMany(StampCorrection::class, 'user_id','user_id')
-                ->whereColumn('target_date', 'date');
+        return $this->hasMany(BreakTime::class);
+    }
+
+    public function getBreakTimeAttribute()
+    {
+        return $this->breakTimes->sum(function ($break) {
+            if ($break->break_start && $break->break_end) {
+                return \Carbon\Carbon::parse($break->break_end)->diffInMinutes(\Carbon\Carbon::parse($break->break_start));
+            }
+            return 0;
+        });
     }
 }

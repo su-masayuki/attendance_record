@@ -13,8 +13,6 @@ return new class extends Migration {
             $table->date('date')->nullable();
             $table->timestamp('clock_in')->nullable();
             $table->timestamp('clock_out')->nullable();
-            $table->timestamp('break_start')->nullable();
-            $table->timestamp('break_end')->nullable();
             $table->timestamps();
         });
     }

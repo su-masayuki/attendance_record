@@ -28,12 +28,30 @@
         </thead>
         <tbody>
             @foreach ($attendances as $attendance)
+            @php
+                $clockIn = $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in) : null;
+                $clockOut = $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out) : null;
+
+                // 休憩時間の合計を計算
+                $totalBreakMinutes = $attendance->breakTimes->sum(function($break) {
+                    $start = \Carbon\Carbon::parse($break->break_start);
+                    $end = \Carbon\Carbon::parse($break->break_end);
+                    return $start && $end ? $start->diffInMinutes($end) : 0;
+                });
+
+                // 勤務時間の計算
+                $totalMinutes = $clockIn && $clockOut ? $clockIn->diffInMinutes($clockOut) - $totalBreakMinutes : 0;
+
+                // フォーマット変換
+                $breakTimeFormatted = floor($totalBreakMinutes / 60) . ':' . str_pad($totalBreakMinutes % 60, 2, '0', STR_PAD_LEFT);
+                $totalTimeFormatted = floor($totalMinutes / 60) . ':' . str_pad($totalMinutes % 60, 2, '0', STR_PAD_LEFT);
+            @endphp
             <tr>
                 <td>{{ optional($attendance->user)->name ?? '不明' }}</td>
-                <td>{{ $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '-' }}</td>
-                <td>{{ $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '-' }}</td>
-                <td>{{ $attendance->break_time ?? '-' }}</td>
-                <td>{{ $attendance->total_time ?? '-' }}</td>
+                <td>{{ $clockIn ? $clockIn->format('H:i') : '-' }}</td>
+                <td>{{ $clockOut ? $clockOut->format('H:i') : '-' }}</td>
+                <td>{{ $totalBreakMinutes > 0 ? $breakTimeFormatted : '-' }}</td>
+                <td>{{ $totalMinutes > 0 ? $totalTimeFormatted : '-' }}</td>
                 <td><a href="{{ route('admin.attendance.detail', ['id' => $attendance->id]) }}">詳細</a></td>
             </tr>
             @endforeach

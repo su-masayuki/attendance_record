@@ -28,7 +28,7 @@
         <tbody>
             @foreach ($attendances as $attendance)
             <tr>
-                <td>{{ $attendance->date->format('m/d(D)') }}</td>
+                <td>{{ $attendance->date }}</td>
                 <td>{{ $attendance->clock_in }}</td>
                 <td>{{ $attendance->clock_out }}</td>
                 <td>{{ $attendance->break_time }}</td>

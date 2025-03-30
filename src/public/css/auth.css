@@ -26,3 +26,9 @@
     color: blue;
     text-decoration: none;
 }
+
+.error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}

@@ -10,9 +10,9 @@
 <div class="attendance-list-container">
     <h1>勤怠一覧</h1>
     <div class="month-selector">
-        <a href="#" class="prev-month">&larr; 前月</a>
-        <span class="current-month">{{ now()->format('Y/m') }}</span>
-        <a href="#" class="next-month">翌月 &rarr;</a>
+        <a href="{{ route('attendance.list', ['month' => $currentMonth->copy()->subMonth()->format('Y-m')]) }}" class="prev-month">&larr; 前月</a>
+        <span class="current-month">{{ $currentMonth->format('Y/m') }}</span>
+        <a href="{{ route('attendance.list', ['month' => $currentMonth->copy()->addMonth()->format('Y-m')]) }}" class="next-month">翌月 &rarr;</a>
     </div>
 
     <table class="attendance-table">
@@ -29,11 +29,27 @@
         <tbody>
             @foreach ($attendances as $attendance)
             <tr>
-                <td>{{ $attendance->date }}</td>
-                <td>{{ $attendance->clock_in }}</td>
-                <td>{{ $attendance->clock_out }}</td>
-                <td>{{ $attendance->break_time }}</td>
-                <td>{{ $attendance->total_time }}</td>
+                <td>{{ \Carbon\Carbon::parse($attendance->date)->locale('ja')->isoFormat('MM/DD(dd)') }}</td>
+                <td>{{ \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') }}</td>
+                <td>{{ \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') }}</td>
+                <td>
+                    @php
+                        $totalBreakMinutes = $attendance->breakTimes->reduce(function ($carry, $break) {
+                            $start = \Carbon\Carbon::parse($break->break_start);
+                            $end = \Carbon\Carbon::parse($break->break_end);
+                            return $carry + ($end && $start ? $end->diffInMinutes($start) : 0);
+                        }, 0);
+                    @endphp
+                    {{ $totalBreakMinutes > 0 ? \Carbon\CarbonInterval::minutes($totalBreakMinutes)->cascade()->format('%H:%I') : '00:00' }}
+                </td>
+                <td>
+                    @php
+                        $clockIn = \Carbon\Carbon::parse($attendance->clock_in);
+                        $clockOut = \Carbon\Carbon::parse($attendance->clock_out);
+                        $workDuration = max(0, $clockOut->diffInMinutes($clockIn) - $totalBreakMinutes);
+                    @endphp
+                    {{ $workDuration > 0 ? \Carbon\CarbonInterval::minutes($workDuration)->cascade()->format('%H:%I') : '00:00' }}
+                </td>
                 <td><a href="{{ route('attendance.detail', ['id' => $attendance->id]) }}">詳細</a>
             </tr>
             @endforeach
