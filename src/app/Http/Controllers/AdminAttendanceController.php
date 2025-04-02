@@ -19,14 +19,14 @@ class AdminAttendanceController extends Controller
         return view('admin_attendance_list', compact('attendances', 'selectedDate'));
     }
 
-   public function show($id)
+    public function show($id)
     {
         // 指定されたIDの勤怠情報を取得
         $attendance = Attendance::with('user')->findOrFail($id);
 
         // `date` カラムが null の場合は `created_at` を使用
-        $attendanceDate = $attendance->date ?? $attendance->created_at;
+        $attendanceDate = $attendance->date ? Carbon::parse($attendance->date)->format('Y/m/d') : Carbon::parse($attendance->created_at)->format('Y/m/d');
 
-            return view('admin_attendance_detail', compact('attendance', 'attendanceDate'));
+        return view('admin_attendance_detail', compact('attendance', 'attendanceDate'));
     }
 }

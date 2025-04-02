@@ -148,6 +148,9 @@ class AttendanceController extends Controller
         // 指定されたIDの勤怠情報を取得
         $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
 
+        // ユーザーが管理者かどうかを判定
+        $isAdmin = Auth::guard('admin')->check();
+
         // 修正申請を `attendance_id` で取得
         $requests = StampCorrection::with('attendance')
             ->where('attendance_id', $attendance->id)
@@ -174,7 +177,21 @@ class AttendanceController extends Controller
             }
         }
 
-        return view('attendance_detail', compact('attendance', 'requests'));
+        // 管理者の場合は `admin_attendance_detail` を表示
+        if ($isAdmin) {
+            return view('admin_attendance_detail', [
+                'attendance' => $attendance,
+                'requests' => $requests,
+                'isAdmin' => $isAdmin,
+            ]);
+        }
+
+        // 一般ユーザーの場合は `attendance_detail` を表示
+        return view('attendance_detail', [
+            'attendance' => $attendance,
+            'requests' => $requests,
+            'isAdmin' => $isAdmin,
+        ]);
     }
 
     /**

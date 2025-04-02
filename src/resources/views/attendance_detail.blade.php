@@ -28,9 +28,11 @@
             <tr>
                 <th>出勤・退勤</th>
                 <td>
-                    <input type="time" name="clock_in" value="{{ optional(\Carbon\Carbon::parse($attendance->clock_in))->format('H:i') }}" {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                    <input type="time" name="clock_in" value="{{ optional(\Carbon\Carbon::parse($attendance->clock_in))->format('H:i') }}" 
+                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
                     〜
-                    <input type="time" name="clock_out" value="{{ optional(\Carbon\Carbon::parse($attendance->clock_out))->format('H:i') }}" {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                    <input type="time" name="clock_out" value="{{ optional(\Carbon\Carbon::parse($attendance->clock_out))->format('H:i') }}" 
+                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
                 </td>
             </tr>
             @foreach ($attendance->breakTimes as $index => $break)
@@ -38,9 +40,11 @@
                 <th>休憩{{ $index + 1 }}</th>
                 <td>
                     <input type="hidden" name="breaks[{{ $index }}][id]" value="{{ $break->id }}">
-                    <input type="time" name="breaks[{{ $index }}][start]" value="{{ optional(\Carbon\Carbon::parse($break->break_start))->format('H:i') }}" {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                    <input type="time" name="breaks[{{ $index }}][start]" value="{{ optional(\Carbon\Carbon::parse($break->break_start))->format('H:i') }}" 
+                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
                     〜
-                    <input type="time" name="breaks[{{ $index }}][end]" value="{{ optional(\Carbon\Carbon::parse($break->break_end))->format('H:i') }}" {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                    <input type="time" name="breaks[{{ $index }}][end]" value="{{ optional(\Carbon\Carbon::parse($break->break_end))->format('H:i') }}" 
+                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
                 </td>
             </tr>
             @endforeach
@@ -60,7 +64,9 @@
             <tr>
                 <th>備考</th>
                 <td>
-                    <textarea name="note" {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>{{ trim(old('note', $latestRequest && $latestRequest->reason ? $latestRequest->reason : ($attendance->note ?? ''))) }}</textarea>
+                    <textarea name="note" {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                        {{ trim(old('note', $latestRequest && $latestRequest->reason ? $latestRequest->reason : ($attendance->note ?? ''))) }}
+                    </textarea>
                 </td>
             </tr>
         </table>

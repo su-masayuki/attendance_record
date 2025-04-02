@@ -1,4 +1,3 @@
-<!-- resources/views/admin/staff_list.blade.php -->
 @extends('layouts.app')
 
 @section('css')
