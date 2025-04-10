@@ -34,11 +34,14 @@
                 <td>{{ optional(\Carbon\Carbon::parse($attendance->clock_out))->format('H:i') ?? '-' }}</td>
                 <td>
                     @php
-                        $totalBreakMinutes = $attendance->breakTimes->reduce(function ($carry, $break) {
-                            $start = \Carbon\Carbon::parse($break->break_start);
-                            $end = \Carbon\Carbon::parse($break->break_end);
-                            return $carry + ($end && $start ? $end->diffInMinutes($start) : 0);
-                        }, 0);
+                        $totalBreakMinutes = 0;
+                        if (!empty($attendance->breakTimes) && is_iterable($attendance->breakTimes)) {
+                            $totalBreakMinutes = $attendance->breakTimes->reduce(function ($carry, $break) {
+                                $start = \Carbon\Carbon::parse($break->break_start);
+                                $end = \Carbon\Carbon::parse($break->break_end);
+                                return $carry + ($end && $start ? $end->diffInMinutes($start) : 0);
+                            }, 0);
+                        }
                     @endphp
                     {{ $totalBreakMinutes > 0 ? \Carbon\CarbonInterval::minutes($totalBreakMinutes)->cascade()->format('%H:%I') : '00:00' }}
                 </td>

@@ -13,14 +13,16 @@ class StampCorrectionController extends Controller
      */
     public function index(Request $request)
     {
-        $query = StampCorrection::where('user_id', Auth::id());
-
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
+        if (Auth::guard('admin')->check()) {
+            $query = StampCorrection::query(); // 管理者は全件取得
+        } else {
+            $query = StampCorrection::where('user_id', Auth::id()); // 一般ユーザーは自分の申請のみ
         }
 
+        $status = $request->query('status', '承認待ち');
+        $query->where('status', $status);
+
         $requests = $query->latest()->get();
-        $status = $request->status ?? null;
 
         return view('stamp_correction_list', compact('requests', 'status'));
     }

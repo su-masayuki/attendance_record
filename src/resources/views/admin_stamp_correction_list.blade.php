@@ -11,7 +11,7 @@
     <h1>申請一覧</h1>
     <div class="status-tabs">
         <a href="{{ route('stamp_correction_request.list', ['status' => '承認待ち']) }}" class="{{ request('status', '承認待ち') === '承認待ち' ? 'active' : '' }}">承認待ち</a>
-        <a href="{{ route('stamp_correction_request.list', ['status' => '承認済み']) }}" class="{{ request('status') === '承認済み' ? 'active' : '' }}">承認済み</a>
+        <a href="{{ route('stamp_correction_request.list', ['status' => '承認済み']) }}" class="{{ request('status', '承認待ち') === '承認済み' ? 'active' : '' }}">承認済み</a>
     </div>
 
     <table class="request-table">
@@ -26,7 +26,15 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($requests as $request)
+            @php
+                $selectedStatus = request()->query('status', '承認待ち');
+                $filteredRequests = $requests->filter(function($request) use ($selectedStatus) {
+                    return $selectedStatus === '承認待ち'
+                        ? $request->status === '承認待ち'
+                        : $request->status === '承認済み';
+                });
+            @endphp
+            @foreach ($filteredRequests as $request)
             <tr>
                 <td>{{ $request->status }}</td>
                 <td>{{ $request->user->name }}</td>
@@ -35,7 +43,7 @@
                 <td>{{ $request->created_at->format('Y/m/d') }}</td>
                 <td>
                     @if ($request->attendance_id)
-                        <a href="{{ url('/stamp_correction_request/approve/' . $request->id) }}">詳細</a>
+                        <a href="{{ route('attendance.detail', ['id' => $request->attendance_id]) }}">詳細</a>
                     @else
                         ー
                     @endif

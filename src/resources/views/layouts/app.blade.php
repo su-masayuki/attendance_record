@@ -14,7 +14,9 @@
     <header>
         <div class="header-container">
             <div class="logo">
-                <a href="/">COACHTECH</a>
+                <a href="/">
+                    <img src="{{ asset('storage/logo.svg') }}" alt="COACHTECH" style="height: 30px; vertical-align: middle;">
+                </a>
             </div>
             @auth
                 @if(Auth::user()->is_admin)
@@ -23,7 +25,7 @@
                     <ul>
                         <li><a href="{{ route('admin.attendance.list') }}">勤怠一覧</a></li>
                         <li><a href="{{ route('admin.staff.list') }}">スタッフ一覧</a></li>
-                        <li><a href="{{ route('admin.request.list') }}">申請一覧</a></li>
+                        <li><a href="{{ url('/stamp_correction_request/list') }}">申請一覧</a></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

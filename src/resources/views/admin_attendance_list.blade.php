@@ -52,7 +52,7 @@
                 <td>{{ $clockOut ? $clockOut->format('H:i') : '-' }}</td>
                 <td>{{ $totalBreakMinutes > 0 ? $breakTimeFormatted : '-' }}</td>
                 <td>{{ $totalMinutes > 0 ? $totalTimeFormatted : '-' }}</td>
-                <td><a href="{{ route('admin.attendance.detail', ['id' => $attendance->id]) }}">詳細</a></td>
+                <td><a href="{{ route('attendance.detail', ['id' => $attendance->id]) }}">詳細</a></td>
             </tr>
             @endforeach
         </tbody>

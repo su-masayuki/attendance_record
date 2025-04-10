@@ -35,29 +35,32 @@
                            {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
                 </td>
             </tr>
-            @foreach ($attendance->breakTimes as $index => $break)
+            @if ($attendance->breakTimes && $attendance->breakTimes->count())
+                @foreach ($attendance->breakTimes as $index => $break)
+                <tr>
+                    <th>休憩{{ $index + 1 }}</th>
+                    <td>
+                        <input type="hidden" name="breaks[{{ $index }}][id]" value="{{ $break->id }}">
+                        <input type="time" name="breaks[{{ $index }}][start]" value="{{ optional(\Carbon\Carbon::parse($break->break_start))->format('H:i') }}" 
+                               {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                        〜
+                        <input type="time" name="breaks[{{ $index }}][end]" value="{{ optional(\Carbon\Carbon::parse($break->break_end))->format('H:i') }}" 
+                               {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                    </td>
+                </tr>
+                @endforeach
+            @endif
+            @php $nextBreakIndex = optional($attendance->breakTimes)->count() ?? 0; @endphp
             <tr>
-                <th>休憩{{ $index + 1 }}</th>
+                <th>休憩{{ $nextBreakIndex + 1 }}</th>
                 <td>
-                    <input type="hidden" name="breaks[{{ $index }}][id]" value="{{ $break->id }}">
-                    <input type="time" name="breaks[{{ $index }}][start]" value="{{ optional(\Carbon\Carbon::parse($break->break_start))->format('H:i') }}" 
+                    <input type="hidden" name="breaks[{{ $nextBreakIndex }}][id]" value="">
+                    <input type="time" name="breaks[{{ $nextBreakIndex }}][start]"
+                           value="{{ old('breaks.' . $nextBreakIndex . '.start') ?: '' }}"
                            {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
                     〜
-                    <input type="time" name="breaks[{{ $index }}][end]" value="{{ optional(\Carbon\Carbon::parse($break->break_end))->format('H:i') }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
-                </td>
-            </tr>
-            @endforeach
-            <tr>
-                <th>休憩{{ $attendance->breakTimes->count() + 1 }}</th>
-                <td>
-                    <input type="hidden" name="breaks[{{ $attendance->breakTimes->count() }}][id]" value="">
-                    <input type="time" name="breaks[{{ $attendance->breakTimes->count() }}][start]" 
-                           value="{{ old('breaks.' . $attendance->breakTimes->count() . '.start') ?: '' }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
-                    〜
-                    <input type="time" name="breaks[{{ $attendance->breakTimes->count() }}][end]" 
-                           value="{{ old('breaks.' . $attendance->breakTimes->count() . '.end') ?: '' }}" 
+                    <input type="time" name="breaks[{{ $nextBreakIndex }}][end]"
+                           value="{{ old('breaks.' . $nextBreakIndex . '.end') ?: '' }}"
                            {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
                 </td>
             </tr>

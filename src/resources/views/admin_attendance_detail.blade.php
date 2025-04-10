@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ asset('css/admin_attendance_detail.css') }}">
 @endsection
 
-@section('title', '勤怠詳細')
+@section('title', '勤怠詳細_管理者')
 
 @section('content')
 <div class="attendance-detail-container">
@@ -14,10 +14,8 @@
         $latestRequest = $attendance->stampCorrections()->latest()->first();
     @endphp
 
-    <form method="POST" action="{{ route('admin.attendance.update', ['id' => $attendance->id]) }}">
+    <form method="POST" action="{{ route('attendance.request', ['id' => $attendance->id]) }}">
         @csrf
-        @method('PUT')
-
         <table class="attendance-table">
             <tr>
                 <th>名前</th>
@@ -25,7 +23,11 @@
             </tr>
             <tr>
                 <th>日付</th>
-                <td>{{ $attendance->date instanceof \Carbon\Carbon ? $attendance->date->format('Y年n月j日') : \Carbon\Carbon::parse($attendance->date)->format('Y年n月j日') }}</td>
+                <td>
+                    <input type="date" name="date"
+                           value="{{ \Carbon\Carbon::parse($attendance->date)->format('Y-m-d') }}"
+                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                </td>
             </tr>
             <tr>
                 <th>出勤・退勤</th>

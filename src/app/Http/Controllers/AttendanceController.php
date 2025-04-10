@@ -145,100 +145,134 @@ class AttendanceController extends Controller
 
     public function show($id)
     {
-        // 指定されたIDの勤怠情報を取得
-        $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
+        // 管理者でログインしているか確認
+        if (Auth::guard('admin')->check()) {
+            $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
 
-        // ユーザーが管理者かどうかを判定
-        $isAdmin = Auth::guard('admin')->check();
+            $requests = StampCorrection::with('attendance')
+                ->where('attendance_id', $attendance->id)
+                ->where('status', '承認待ち')
+                ->latest()
+                ->first();
 
-        // 修正申請を `attendance_id` で取得
-        $requests = StampCorrection::with('attendance')
-            ->where('attendance_id', $attendance->id)
-            ->where('status', '承認待ち')
-            ->latest()
-            ->first();
+            if ($requests) {
+                $attendance->clock_in = $requests->clock_in ?? $attendance->clock_in;
+                $attendance->clock_out = $requests->clock_out ?? $attendance->clock_out;
+                $attendance->note = $requests->reason ?? $attendance->note;
 
-        // 修正申請がある場合、`attendance` の `clock_in` と `clock_out` を上書き
-        if ($requests) {
-            $attendance->clock_in = $requests->clock_in ?? $attendance->clock_in;
-            $attendance->clock_out = $requests->clock_out ?? $attendance->clock_out;
-            $attendance->note = $requests->reason ?? $attendance->note;
-
-            // 休憩情報も修正申請がある場合は BreakTime に直接反映
-            if ($requests->breaks) {
-                BreakTime::where('attendance_id', $attendance->id)->delete();
-                foreach ($requests->breaks as $break) {
-                    BreakTime::create([
-                        'attendance_id' => $attendance->id,
-                        'break_start' => $break['break_start'],
-                        'break_end' => $break['break_end'],
-                    ]);
+                if ($requests->breaks) {
+                    BreakTime::where('attendance_id', $attendance->id)->delete();
+                    foreach ($requests->breaks as $break) {
+                        BreakTime::create([
+                            'attendance_id' => $attendance->id,
+                            'break_start' => $break['break_start'],
+                            'break_end' => $break['break_end'],
+                        ]);
+                    }
                 }
             }
-        }
 
-        // 管理者の場合は `admin_attendance_detail` を表示
-        if ($isAdmin) {
             return view('admin_attendance_detail', [
                 'attendance' => $attendance,
                 'requests' => $requests,
-                'isAdmin' => $isAdmin,
+                'isAdmin' => true,
             ]);
         }
 
-        // 一般ユーザーの場合は `attendance_detail` を表示
-        return view('attendance_detail', [
-            'attendance' => $attendance,
-            'requests' => $requests,
-            'isAdmin' => $isAdmin,
-        ]);
+        // 一般ユーザーでログインしているか確認
+        if (Auth::guard('web')->check()) {
+            $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
+
+            $requests = StampCorrection::with('attendance')
+                ->where('attendance_id', $attendance->id)
+                ->where('status', '承認待ち')
+                ->latest()
+                ->first();
+
+            if ($requests) {
+                $attendance->clock_in = $requests->clock_in ?? $attendance->clock_in;
+                $attendance->clock_out = $requests->clock_out ?? $attendance->clock_out;
+                $attendance->note = $requests->reason ?? $attendance->note;
+
+                $breaks = is_string($requests->breaks) ? json_decode($requests->breaks, true) : $requests->breaks;
+
+                if (is_array($breaks)) {
+                    BreakTime::where('attendance_id', $attendance->id)->delete();
+
+                    foreach ($breaks as $break) {
+                        if (!empty($break['start']) && !empty($break['end'])) {
+                            BreakTime::create([
+                                'attendance_id' => $attendance->id,
+                                'break_start' => $break['start'], 
+                                'break_end' => $break['end'], 
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            return view('attendance_detail', [
+                'attendance' => $attendance,
+                'requests' => $requests,
+                'isAdmin' => false,
+            ]);
+        }
+
+        // 未ログインならログイン画面へリダイレクト
+        return redirect()->route('login');
     }
 
     /**
      * 勤怠修正申請の送信処理
      */
     public function submitCorrectionRequest(Request $request, $id)
-    {
-        $attendance = Attendance::findOrFail($id);
+{
+    $attendance = Attendance::with('breakTimes')->findOrFail($id);
+    $user = auth()->user();
 
-        // バリデーション
-        $request->validate([
-            'clock_in' => 'nullable|date_format:H:i',
-            'clock_out' => 'nullable|date_format:H:i|after:clock_in',
-            'breaks' => 'array',
-            'breaks.*.start' => 'nullable|date_format:H:i',
-            'breaks.*.end' => 'nullable|date_format:H:i|after:breaks.*.start',
-            'note' => 'required|string|max:255',
+    if ($user instanceof \App\Models\Admin) {
+        // 管理者は即時反映
+        $attendance->update([
+            'date' => $request->input('date'),
+            'clock_in' => $attendance->date . ' ' . $request->input('clock_in'),
+            'clock_out' => $attendance->date . ' ' . $request->input('clock_out'),
         ]);
 
-        // 既存の休憩時間を削除
-        BreakTime::where('attendance_id', $attendance->id)->delete();
-
-        // 休憩時間を保存
-        if ($request->has('breaks')) {
-            foreach ($request->breaks as $break) {
-                if (!empty($break['start']) && !empty($break['end'])) {
-                    BreakTime::create([
-                        'attendance_id' => $attendance->id,
-                        'break_start' => Carbon::createFromFormat('H:i', $break['start'])->format('H:i:s'),
-                        'break_end' => Carbon::createFromFormat('H:i', $break['end'])->format('H:i:s'),
+        // 休憩の更新
+        foreach ($request->input('breaks', []) as $breakData) {
+            if (!empty($breakData['id'])) {
+                $break = BreakTime::find($breakData['id']);
+                if ($break) {
+                    $break->update([
+                        'break_start' => $attendance->date . ' ' . $breakData['start'],
+                        'break_end' => $attendance->date . ' ' . $breakData['end'],
                     ]);
                 }
+            } elseif (!empty($breakData['start']) && !empty($breakData['end'])) {
+                BreakTime::create([
+                    'attendance_id' => $attendance->id,
+                    'break_start' => $attendance->date . ' ' . $breakData['start'],
+                    'break_end' => $attendance->date . ' ' . $breakData['end'],
+                ]);
             }
         }
 
-        // 勤怠情報の修正申請を作成
-        StampCorrection::create([
-            'user_id' => $attendance->user_id,
-            'attendance_id' => $attendance->id,
-            'target_date' => $attendance->date,
-            'clock_in' => $request->clock_in ? Carbon::createFromFormat('H:i', $request->clock_in) : null,
-            'clock_out' => $request->clock_out ? Carbon::createFromFormat('H:i', $request->clock_out) : null,
-            'reason' => $request->note,
-            'status' => '承認待ち',
-            'applied_at' => now(),
-        ]);
-
-        return redirect()->route('attendance.detail', ['id' => $attendance->id])->with('success', '修正申請を送信しました。');
+        return redirect()->route('attendance.detail', ['id' => $id])->with('success', '勤怠を更新しました。');
     }
+
+    // 一般ユーザーは修正申請
+    StampCorrection::create([
+        'user_id' => $user->id,
+        'attendance_id' => $attendance->id,
+        'target_date' => $attendance->date,
+        'clock_in' => $request->input('clock_in'),
+        'clock_out' => $request->input('clock_out'),
+        'reason' => $request->input('note'),
+        'status' => '承認待ち',
+        'applied_at' => now(),
+        'breaks' => json_encode($request->input('breaks', [])),
+    ]);
+
+    return redirect()->route('attendance.detail', ['id' => $id])->with('success', '修正申請を送信しました。');
+}
 }

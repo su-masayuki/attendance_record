@@ -4,12 +4,26 @@
 <link rel="stylesheet" href="{{ asset('css/admin_attendance_approval.css') }}">
 @endsection
 
-@section('title', '勤怠詳細')
+@section('title', '修正申請承認')
 
 @section('content')
 <div class="attendance-detail-container">
     <h1>勤怠詳細</h1>
     <table class="attendance-table">
+    @php
+        $latestCorrection = $attendance->stampCorrections()->latest()->first();
+        $clockIn = $latestCorrection->clock_in ?? $attendance->clock_in;
+        $clockOut = $latestCorrection->clock_out ?? $attendance->clock_out;
+        $note = $latestCorrection->reason ?? $attendance->note;
+
+        $totalBreakMinutes = 0;
+        foreach ($attendance->breakTimes ?? [] as $break) {
+            $start = \Carbon\Carbon::parse($break->break_start);
+            $end = \Carbon\Carbon::parse($break->break_end);
+            $totalBreakMinutes += $end->diffInMinutes($start);
+        }
+        $totalBreakFormatted = \Carbon\CarbonInterval::minutes($totalBreakMinutes)->cascade()->format('%H:%I');
+    @endphp
         <tr>
             <th>名前</th>
             <td>{{ $attendance->user->name }}</td>
@@ -21,36 +35,30 @@
         <tr>
             <th>出勤・退勤</th>
             <td>
-                {{ $attendance->clock_in }} ~ {{ $attendance->clock_out }}
+                {{ \Carbon\Carbon::parse($clockIn)->format('H:i') }} ~ {{ \Carbon\Carbon::parse($clockOut)->format('H:i') }}
             </td>
         </tr>
+        @foreach ($attendance->breakTimes as $index => $break)
         <tr>
-            <th>休憩</th>
+            <th>休憩{{ $index + 1 }}</th>
             <td>
-                {{ $attendance->break_start }} ~ {{ $attendance->break_end }}
+                {{ \Carbon\Carbon::parse($break->break_start)->format('H:i') }} ~ {{ \Carbon\Carbon::parse($break->break_end)->format('H:i') }}
             </td>
         </tr>
-        <tr>
-            <th>休憩2</th>
-            <td>
-                {{ $attendance->break_start_2 ?? '—' }} ~ {{ $attendance->break_end_2 ?? '—' }}
-            </td>
-        </tr>
+        @endforeach
         <tr>
             <th>備考</th>
             <td>
-                {{ $attendance->note ?? '—' }}
+                {{ $note ?? '—' }}
             </td>
         </tr>
     </table>
 
-    @if($attendance->status === '承認済み')
-    <button class="approved-button" disabled>承認済み</button>
-    @else
-    <form action="{{ route('admin.attendance.approve', $attendance->id) }}" method="post">
+    <form action="{{ route('admin.attendance.approve', $latestCorrection->id ?? 0) }}" method="post">
         @csrf
-        <button type="submit" class="approve-button">承認</button>
+        <button type="submit" class="{{ $attendance->status === '承認済み' ? 'approved-button' : 'approve-button' }}" {{ $attendance->status === '承認済み' ? 'disabled' : '' }}>
+            {{ $attendance->status === '承認済み' ? '承認済み' : '承認' }}
+        </button>
     </form>
-    @endif
 </div>
 @endsection
