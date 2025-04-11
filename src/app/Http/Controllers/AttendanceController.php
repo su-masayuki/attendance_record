@@ -10,7 +10,7 @@ use App\Models\Attendance;
 use App\Models\StampCorrection;
 use App\Models\User; 
 use App\Models\BreakTime;
- 
+
 class AttendanceController extends Controller
 {
     /**
@@ -160,14 +160,19 @@ class AttendanceController extends Controller
                 $attendance->clock_out = $requests->clock_out ?? $attendance->clock_out;
                 $attendance->note = $requests->reason ?? $attendance->note;
 
-                if ($requests->breaks) {
+                $breaks = is_string($requests->breaks) ? json_decode($requests->breaks, true) : $requests->breaks;
+
+                if (is_array($breaks)) {
                     BreakTime::where('attendance_id', $attendance->id)->delete();
-                    foreach ($requests->breaks as $break) {
-                        BreakTime::create([
-                            'attendance_id' => $attendance->id,
-                            'break_start' => $break['break_start'],
-                            'break_end' => $break['break_end'],
-                        ]);
+
+                    foreach ($breaks as $break) {
+                        if (!empty($break['start']) && !empty($break['end'])) {
+                            BreakTime::create([
+                                'attendance_id' => $attendance->id,
+                                'break_start' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['start'])->format('Y-m-d H:i:s'),
+                                'break_end' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['end'])->format('Y-m-d H:i:s'),
+                            ]);
+                        }
                     }
                 }
             }
@@ -203,8 +208,8 @@ class AttendanceController extends Controller
                         if (!empty($break['start']) && !empty($break['end'])) {
                             BreakTime::create([
                                 'attendance_id' => $attendance->id,
-                                'break_start' => $break['start'], 
-                                'break_end' => $break['end'], 
+                                'break_start' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['start'])->format('Y-m-d H:i:s'),
+                                'break_end' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['end'])->format('Y-m-d H:i:s'),
                             ]);
                         }
                     }
@@ -226,53 +231,60 @@ class AttendanceController extends Controller
      * 勤怠修正申請の送信処理
      */
     public function submitCorrectionRequest(Request $request, $id)
-{
-    $attendance = Attendance::with('breakTimes')->findOrFail($id);
-    $user = auth()->user();
+    {
+        $attendance = Attendance::with('breakTimes')->findOrFail($id);
+        $user = auth()->user();
 
-    if ($user instanceof \App\Models\Admin) {
-        // 管理者は即時反映
-        $attendance->update([
-            'date' => $request->input('date'),
-            'clock_in' => $attendance->date . ' ' . $request->input('clock_in'),
-            'clock_out' => $attendance->date . ' ' . $request->input('clock_out'),
-        ]);
+        if ($user instanceof \App\Models\Admin) {
+            // 管理者は即時反映
+            $attendance->update([
+                'date' => $request->input('date'),
+                'clock_in' => Carbon::createFromFormat('Y-m-d H:i', $attendance->date . ' ' . $request->input('clock_in'))->format('Y-m-d H:i:s'),
+                'clock_out' => Carbon::createFromFormat('Y-m-d H:i', $attendance->date . ' ' . $request->input('clock_out'))->format('Y-m-d H:i:s'),
+            ]);
 
-        // 休憩の更新
-        foreach ($request->input('breaks', []) as $breakData) {
-            if (!empty($breakData['id'])) {
-                $break = BreakTime::find($breakData['id']);
-                if ($break) {
-                    $break->update([
-                        'break_start' => $attendance->date . ' ' . $breakData['start'],
-                        'break_end' => $attendance->date . ' ' . $breakData['end'],
-                    ]);
+            // 休憩の更新
+            foreach ($request->input('breaks', []) as $breakData) {
+                $date = $request->input('date', $attendance->date);
+
+                $start = $breakData['start'] ?? null;
+                $end = $breakData['end'] ?? null;
+
+                if ($start !== null && $end !== null && $start !== '' && $end !== '') {
+                    if (!empty($breakData['id'])) {
+                        $break = BreakTime::find($breakData['id']);
+                        if ($break) {
+                            $break->update([
+                                'break_start' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $start)->format('Y-m-d H:i:s'),
+                                'break_end' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $end)->format('Y-m-d H:i:s'),
+                            ]);
+                        }
+                    } else {
+                        BreakTime::create([
+                            'attendance_id' => $attendance->id,
+                            'break_start' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $start)->format('Y-m-d H:i:s'),
+                            'break_end' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $end)->format('Y-m-d H:i:s'),
+                        ]);
+                    }
                 }
-            } elseif (!empty($breakData['start']) && !empty($breakData['end'])) {
-                BreakTime::create([
-                    'attendance_id' => $attendance->id,
-                    'break_start' => $attendance->date . ' ' . $breakData['start'],
-                    'break_end' => $attendance->date . ' ' . $breakData['end'],
-                ]);
             }
+
+            return redirect()->route('attendance.detail', ['id' => $id])->with('success', '勤怠を更新しました。');
         }
 
-        return redirect()->route('attendance.detail', ['id' => $id])->with('success', '勤怠を更新しました。');
+        // 一般ユーザーは修正申請
+        StampCorrection::create([
+            'user_id' => $user->id,
+            'attendance_id' => $attendance->id,
+            'target_date' => $attendance->date,
+            'clock_in' => $request->input('clock_in'),
+            'clock_out' => $request->input('clock_out'),
+            'reason' => $request->input('note'),
+            'status' => '承認待ち',
+            'applied_at' => now(),
+            'breaks' => json_encode($request->input('breaks', [])),
+        ]);
+
+        return redirect()->route('attendance.detail', ['id' => $id])->with('success', '修正申請を送信しました。');
     }
-
-    // 一般ユーザーは修正申請
-    StampCorrection::create([
-        'user_id' => $user->id,
-        'attendance_id' => $attendance->id,
-        'target_date' => $attendance->date,
-        'clock_in' => $request->input('clock_in'),
-        'clock_out' => $request->input('clock_out'),
-        'reason' => $request->input('note'),
-        'status' => '承認待ち',
-        'applied_at' => now(),
-        'breaks' => json_encode($request->input('breaks', [])),
-    ]);
-
-    return redirect()->route('attendance.detail', ['id' => $id])->with('success', '修正申請を送信しました。');
-}
 }

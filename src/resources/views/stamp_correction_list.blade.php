@@ -34,8 +34,10 @@
                 <td>{{ $request->reason }}</td>
                 <td>{{ $request->created_at->format('Y/m/d') }}</td>
                 <td>
-                    @if ($request->attendance_id)
-                        <a href="{{ url('/stamp_correction_request/approve/' . $request->id) }}">詳細</a>
+                    @if (Auth::guard('admin')->check())
+                        <a href="{{ route('admin.attendance.approval', ['attendance_correct_request' => $request->id]) }}">詳細</a>
+                    @elseif ($request->attendance_id)
+                        <a href="{{ route('attendance.detail', ['id' => $request->attendance_id]) }}">詳細</a>
                     @else
                         ー
                     @endif

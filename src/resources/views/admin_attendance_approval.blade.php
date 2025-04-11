@@ -54,8 +54,12 @@
         </tr>
     </table>
 
-    <form action="{{ route('admin.attendance.approve', $latestCorrection->id ?? 0) }}" method="post">
+    <form action="{{ route('admin.attendance.approve', ['attendance_correct_request' => $latestCorrection->id]) }}" method="post">
         @csrf
+        <input type="hidden" name="clock_in" value="{{ $latestCorrection->clock_in }}">
+        <input type="hidden" name="clock_out" value="{{ $latestCorrection->clock_out }}">
+        <input type="hidden" name="note" value="{{ $latestCorrection->reason }}">
+        <input type="hidden" name="attendance_id" value="{{ $attendance->id }}">
         <button type="submit" class="{{ $attendance->status === '承認済み' ? 'approved-button' : 'approve-button' }}" {{ $attendance->status === '承認済み' ? 'disabled' : '' }}>
             {{ $attendance->status === '承認済み' ? '承認済み' : '承認' }}
         </button>
