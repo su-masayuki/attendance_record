@@ -43,38 +43,44 @@ class AdminAttendanceController extends Controller
     }
 
     public function approve($attendance_correct_request)
-    {
-        $correction = \App\Models\StampCorrection::with('attendance')->findOrFail($attendance_correct_request);
-        $attendance = $correction->attendance;
+{
+    $correction = \App\Models\StampCorrection::with('attendance')->findOrFail($attendance_correct_request);
+    $attendance = $correction->attendance;
 
-        if (!$attendance) {
-            return redirect()->back()->with('error', '該当する勤怠データが見つかりませんでした。');
-        }
+    if (!$attendance) {
+        return redirect()->back()->with('error', '該当する勤怠データが見つかりませんでした。');
+    }
 
-        // 勤怠情報を修正申請の内容で更新
-        $attendance->clock_in = $correction->clock_in;
-        $attendance->clock_out = $correction->clock_out;
-        // $attendance->note = $correction->reason;
-        $attendance->save();
+    // 勤怠情報を修正申請の内容で更新
+    $attendance->clock_in = $correction->clock_in;
+    $attendance->clock_out = $correction->clock_out;
+    $attendance->save();
 
-        // break_timesがある場合、削除してから再登録
-        $attendance->breakTimes()->delete();
+    // 既存の break_times を削除
+    $attendance->breakTimes()->delete();
 
-        $decodedBreaks = json_decode($correction->breaks, true); // ← 修正
+    // 修正申請に登録されている休憩時間を break_times に反映
+    $decodedBreaks = json_decode($correction->breaks, true);
+    if (is_array($decodedBreaks)) {
+        foreach ($decodedBreaks as $break) {
+            if (!empty($break['start']) && !empty($break['end'])) {
+                $breakStart = Carbon::parse($attendance->date)->setTimeFromTimeString($break['start']);
+                $breakEnd = Carbon::parse($attendance->date)->setTimeFromTimeString($break['end']);
 
-        if (is_array($decodedBreaks)) {
-            foreach ($decodedBreaks as $break) {
                 $attendance->breakTimes()->create([
-                    'break_start' => $break['start'] ?? null,
-                    'break_end' => $break['end'] ?? null,
-                 ]);
+                    'break_start' => $breakStart,
+                    'break_end' => $breakEnd,
+                ]);
             }
         }
-
-        // ステータスを更新
-        $correction->status = '承認済み';
-        $correction->save();
-
-        return redirect()->route('stamp_correction_request.list')->with('success', '修正申請を承認しました。');
     }
+
+    // ステータスを承認済みに
+    $correction->status = '承認済み';
+    $correction->save();
+
+    // 承認後に確認画面へリダイレクト（必要なら一覧でもOK）
+    return redirect()->route('admin.attendance.approval', ['attendance_correct_request' => $correction->id])
+                     ->with('success', '修正申請を承認しました。');
+}
 }

@@ -43,7 +43,7 @@ h1 {
     margin-top: 20px;
 }
 
-.approved-button {
+.approved-label {
     width: 120px;
     padding: 10px;
     background-color: #aaa;
@@ -52,5 +52,6 @@ h1 {
     border: none;
     border-radius: 5px;
     cursor: not-allowed;
-    margin-top: 20px;
+    margin: 20px auto 0;
+    display: block;
 }

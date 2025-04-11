@@ -60,9 +60,12 @@
         <input type="hidden" name="clock_out" value="{{ $latestCorrection->clock_out }}">
         <input type="hidden" name="note" value="{{ $latestCorrection->reason }}">
         <input type="hidden" name="attendance_id" value="{{ $attendance->id }}">
-        <button type="submit" class="{{ $attendance->status === '承認済み' ? 'approved-button' : 'approve-button' }}" {{ $attendance->status === '承認済み' ? 'disabled' : '' }}>
-            {{ $attendance->status === '承認済み' ? '承認済み' : '承認' }}
-        </button>
+        <input type="hidden" name="breaks" value='@json($latestCorrection->breaks)'>
+        @if ($latestCorrection->status === '承認済み')
+            <span class="approved-label">承認済み</span>
+        @else
+            <button type="submit" class="approve-button">承認</button>
+        @endif
     </form>
 </div>
 @endsection
