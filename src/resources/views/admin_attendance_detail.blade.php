@@ -14,8 +14,9 @@
         $latestRequest = $attendance->stampCorrections()->latest()->first();
     @endphp
 
-    <form method="POST" action="{{ route('attendance.request', ['id' => $attendance->id]) }}">
+    <form method="POST" action="{{ route('admin.attendance.update', ['id' => $attendance->id]) }}">
         @csrf
+        @method('POST')
         <table class="attendance-table">
             <tr>
                 <th>名前</th>
@@ -26,17 +27,17 @@
                 <td>
                     <input type="date" name="date"
                            value="{{ \Carbon\Carbon::parse($attendance->date)->format('Y-m-d') }}"
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                           {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                 </td>
             </tr>
             <tr>
                 <th>出勤・退勤</th>
                 <td>
                     <input type="time" name="clock_in" value="{{ optional(\Carbon\Carbon::parse($attendance->clock_in))->format('H:i') }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                           {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                     〜
                     <input type="time" name="clock_out" value="{{ optional(\Carbon\Carbon::parse($attendance->clock_out))->format('H:i') }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                           {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                 </td>
             </tr>
             @foreach ($attendance->breakTimes as $index => $break)
@@ -45,10 +46,10 @@
                 <td>
                     <input type="hidden" name="breaks[{{ $index }}][id]" value="{{ $break->id }}">
                     <input type="time" name="breaks[{{ $index }}][start]" value="{{ optional(\Carbon\Carbon::parse($break->break_start))->format('H:i') }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                           {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                     〜
                     <input type="time" name="breaks[{{ $index }}][end]" value="{{ optional(\Carbon\Carbon::parse($break->break_end))->format('H:i') }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                           {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                 </td>
             </tr>
             @endforeach
@@ -58,17 +59,17 @@
                     <input type="hidden" name="breaks[{{ $attendance->breakTimes->count() }}][id]" value="">
                     <input type="time" name="breaks[{{ $attendance->breakTimes->count() }}][start]" 
                            value="{{ old('breaks.' . $attendance->breakTimes->count() . '.start') ?: '' }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                           {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                     〜
                     <input type="time" name="breaks[{{ $attendance->breakTimes->count() }}][end]" 
                            value="{{ old('breaks.' . $attendance->breakTimes->count() . '.end') ?: '' }}" 
-                           {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                           {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                 </td>
             </tr>
             <tr>
                 <th>備考</th>
                 <td>
-                    <textarea name="note" {{ $latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '' }}>
+                    <textarea name="note" {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
                         {{ trim(old('note', $latestRequest && $latestRequest->reason ? $latestRequest->reason : ($attendance->note ?? ''))) }}
                     </textarea>
                 </td>

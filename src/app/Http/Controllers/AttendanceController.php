@@ -237,11 +237,10 @@ class AttendanceController extends Controller
 
         if ($user instanceof \App\Models\Admin) {
             // 管理者は即時反映
-            $attendance->update([
-                'date' => $request->input('date'),
-                'clock_in' => Carbon::createFromFormat('Y-m-d H:i', $attendance->date . ' ' . $request->input('clock_in'))->format('Y-m-d H:i:s'),
-                'clock_out' => Carbon::createFromFormat('Y-m-d H:i', $attendance->date . ' ' . $request->input('clock_out'))->format('Y-m-d H:i:s'),
-            ]);
+            $attendance->date = $request->input('date');
+            $attendance->clock_in = Carbon::createFromFormat('Y-m-d H:i', $attendance->date . ' ' . $request->input('clock_in'))->format('Y-m-d H:i:s');
+            $attendance->clock_out = Carbon::createFromFormat('Y-m-d H:i', $attendance->date . ' ' . $request->input('clock_out'))->format('Y-m-d H:i:s');
+            $attendance->save();
 
             // 休憩の更新
             foreach ($request->input('breaks', []) as $breakData) {
@@ -286,5 +285,39 @@ class AttendanceController extends Controller
         ]);
 
         return redirect()->route('attendance.detail', ['id' => $id])->with('success', '修正申請を送信しました。');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        $newDate = $request->input('date');
+        
+        $attendance->date = $newDate;
+        $attendance->clock_in = Carbon::createFromFormat('Y-m-d H:i', $newDate . ' ' . $request->input('clock_in'))->format('Y-m-d H:i:s');
+        $attendance->clock_out = Carbon::createFromFormat('Y-m-d H:i', $newDate . ' ' . $request->input('clock_out'))->format('Y-m-d H:i:s');
+        $attendance->save();
+
+        // 更新対象の休憩情報をリセット
+        BreakTime::where('attendance_id', $attendance->id)->delete();
+
+        // 再登録
+        foreach ($request->input('breaks', []) as $break) {
+            $start = $break['start'] ?? null;
+            $end = $break['end'] ?? null;
+
+            if (!empty($start) && !empty($end)) {
+                BreakTime::create([
+                    'attendance_id' => $attendance->id,
+                    'break_start' => Carbon::createFromFormat('Y-m-d H:i', $newDate . ' ' . $start)->format('Y-m-d H:i:s'),
+                    'break_end' => Carbon::createFromFormat('Y-m-d H:i', $newDate . ' ' . $end)->format('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+
+        // 月次一覧での反映のため、リダイレクト先を修正
+        $month = Carbon::parse($newDate)->format('Y-m');
+
+        return redirect()->route('attendance.list', ['month' => $month])->with('success', '勤怠情報を更新しました。');
     }
 }
