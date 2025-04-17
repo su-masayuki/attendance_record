@@ -58,6 +58,6 @@
         </tbody>
     </table>
 
-    <a href="{{ route('admin.attendance.csv', ['id' => $staff->id]) }}" class="csv-export">CSV出力</a>
+    <a href="{{ route('admin.attendance.csv', ['id' => $staff->id, 'month' => $month->format('Y-m')]) }}" class="csv-export">CSV出力</a>
 </div>
 @endsection

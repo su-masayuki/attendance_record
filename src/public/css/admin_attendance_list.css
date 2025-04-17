@@ -43,3 +43,40 @@
     text-decoration: none;
     color: blue;
 }
+
+/* Tablet (768px - 850px) */
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .attendance-list-container {
+        padding: 15px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .date-navigation {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+}
+
+/* PC (1400px - 1540px) */
+@media screen and (min-width: 1400px) and (max-width: 1540px) {
+    .attendance-list-container {
+        max-width: 1000px;
+        padding: 30px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .date-navigation a {
+        font-size: 18px;
+    }
+}

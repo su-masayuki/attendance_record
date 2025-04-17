@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminStaffController;
 use App\Http\Controllers\AdminStaffAttendanceController;
 use App\Http\Controllers\AdminAttendanceController;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
+use App\Http\Controllers\AdminLoginController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,14 +43,13 @@ Route::middleware(['guest'])->group(function () {
 // 管理者ログイン
 Route::middleware(['guest:admin'])->group(function () {
     Route::get('/admin/login', [AuthenticatedSessionController::class, 'create'])->name('admin.login');
-    Route::post('/admin/login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('/admin/login', [AdminLoginController::class, 'store']);
 });
 
 // 認証済み管理者のルート
 Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('/attendance/list', [AdminAttendanceController::class, 'index'])->name('admin.attendance.list');
-    Route::post('/attendance/{id}', [AttendanceController::class, 'update'])->name('admin.attendance.update');
-    Route::get('/attendance/{id}', [AttendanceController::class, 'show'])->name('admin.attendance.edit');
+    Route::match(['post', 'put'], '/attendance/{id}', [AttendanceController::class, 'update'])->name('admin.attendance.update');
     Route::get('/staff/list', [AdminStaffController::class, 'index'])->name('admin.staff.list');
     Route::get('/staff/attendance/{id}', [AdminStaffAttendanceController::class, 'index'])->name('admin.attendance.staff');
     Route::get('/attendance/staff/{id}', [AdminStaffAttendanceController::class, 'index'])->name('admin.attendance.staff_list');

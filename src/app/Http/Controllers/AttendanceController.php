@@ -10,6 +10,8 @@ use App\Models\Attendance;
 use App\Models\StampCorrection;
 use App\Models\User; 
 use App\Models\BreakTime;
+use App\Http\Requests\SubmitCorrectionRequest;
+use App\Http\Requests\AdminAttendanceUpdateRequest;
 
 class AttendanceController extends Controller
 {
@@ -145,92 +147,50 @@ class AttendanceController extends Controller
 
     public function show($id)
     {
-        // 管理者でログインしているか確認
-        if (Auth::guard('admin')->check()) {
-            $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
+        $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
 
-            $requests = StampCorrection::with('attendance')
-                ->where('attendance_id', $attendance->id)
-                ->where('status', '承認待ち')
-                ->latest()
-                ->first();
+        $requests = StampCorrection::with('attendance')
+            ->where('attendance_id', $attendance->id)
+            ->where('status', '承認待ち')
+            ->latest()
+            ->first();
 
-            if ($requests) {
-                $attendance->clock_in = $requests->clock_in ?? $attendance->clock_in;
-                $attendance->clock_out = $requests->clock_out ?? $attendance->clock_out;
-                $attendance->note = $requests->reason ?? $attendance->note;
+        if ($requests) {
+            $attendance->clock_in = $requests->clock_in ?? $attendance->clock_in;
+            $attendance->clock_out = $requests->clock_out ?? $attendance->clock_out;
+            $attendance->note = $requests->reason ?? $attendance->note;
 
-                $breaks = is_string($requests->breaks) ? json_decode($requests->breaks, true) : $requests->breaks;
+            $breaks = is_string($requests->breaks) ? json_decode($requests->breaks, true) : $requests->breaks;
 
-                if (is_array($breaks)) {
-                    BreakTime::where('attendance_id', $attendance->id)->delete();
+            if (is_array($breaks)) {
+                BreakTime::where('attendance_id', $attendance->id)->delete();
 
-                    foreach ($breaks as $break) {
-                        if (!empty($break['start']) && !empty($break['end'])) {
-                            BreakTime::create([
-                                'attendance_id' => $attendance->id,
-                                'break_start' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['start'])->format('Y-m-d H:i:s'),
-                                'break_end' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['end'])->format('Y-m-d H:i:s'),
-                            ]);
-                        }
+                foreach ($breaks as $break) {
+                    if (!empty($break['start']) && !empty($break['end'])) {
+                        BreakTime::create([
+                            'attendance_id' => $attendance->id,
+                            'break_start' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['start'])->format('Y-m-d H:i:s'),
+                            'break_end' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['end'])->format('Y-m-d H:i:s'),
+                        ]);
                     }
                 }
             }
-
-            return view('admin_attendance_detail', [
-                'attendance' => $attendance,
-                'requests' => $requests,
-                'isAdmin' => true,
-            ]);
         }
 
-        // 一般ユーザーでログインしているか確認
-        if (Auth::guard('web')->check()) {
-            $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
+        // ログインユーザーが管理者かどうかを判定
+        $isAdmin = Auth::guard('admin')->check();
 
-            $requests = StampCorrection::with('attendance')
-                ->where('attendance_id', $attendance->id)
-                ->where('status', '承認待ち')
-                ->latest()
-                ->first();
-
-            if ($requests) {
-                $attendance->clock_in = $requests->clock_in ?? $attendance->clock_in;
-                $attendance->clock_out = $requests->clock_out ?? $attendance->clock_out;
-                $attendance->note = $requests->reason ?? $attendance->note;
-
-                $breaks = is_string($requests->breaks) ? json_decode($requests->breaks, true) : $requests->breaks;
-
-                if (is_array($breaks)) {
-                    BreakTime::where('attendance_id', $attendance->id)->delete();
-
-                    foreach ($breaks as $break) {
-                        if (!empty($break['start']) && !empty($break['end'])) {
-                            BreakTime::create([
-                                'attendance_id' => $attendance->id,
-                                'break_start' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['start'])->format('Y-m-d H:i:s'),
-                                'break_end' => Carbon::createFromFormat('Y-m-d H:i', Carbon::parse($attendance->date)->toDateString() . ' ' . $break['end'])->format('Y-m-d H:i:s'),
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            return view('attendance_detail', [
-                'attendance' => $attendance,
-                'requests' => $requests,
-                'isAdmin' => false,
-            ]);
-        }
-
-        // 未ログインならログイン画面へリダイレクト
-        return redirect()->route('login');
+        return view('attendance_detail', [
+            'attendance' => $attendance,
+            'requests' => $requests,
+            'isAdmin' => $isAdmin,
+        ]);
     }
 
     /**
      * 勤怠修正申請の送信処理
      */
-    public function submitCorrectionRequest(Request $request, $id)
+    public function submitCorrectionRequest(SubmitCorrectionRequest $request, $id)
     {
         $attendance = Attendance::with('breakTimes')->findOrFail($id);
         $user = auth()->user();
@@ -287,7 +247,7 @@ class AttendanceController extends Controller
         return redirect()->route('attendance.detail', ['id' => $id])->with('success', '修正申請を送信しました。');
     }
 
-    public function update(Request $request, $id)
+    public function update(AdminAttendanceUpdateRequest $request, $id)
     {
         $attendance = Attendance::findOrFail($id);
 

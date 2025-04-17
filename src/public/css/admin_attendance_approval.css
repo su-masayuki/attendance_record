@@ -55,3 +55,53 @@ h1 {
     margin: 20px auto 0;
     display: block;
 }
+
+/* Tablet (768px - 850px) */
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .attendance-detail-container {
+        max-width: 95%;
+        padding: 15px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .approve-button,
+    .approved-label {
+        width: 100%;
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+}
+
+/* PC (1400px - 1540px) */
+@media screen and (min-width: 1400px) and (max-width: 1540px) {
+    .attendance-detail-container {
+        max-width: 700px;
+        padding: 30px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .approve-button,
+    .approved-label {
+        width: 140px;
+        font-size: 17px;
+        padding: 12px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+}

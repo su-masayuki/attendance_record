@@ -50,3 +50,43 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     display: none;
     -webkit-appearance: none;
 }
+
+/* Tablet (768px - 850px) */
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .attendance-detail-container {
+        max-width: 90%;
+        padding: 15px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .edit-button {
+        width: 90px;
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+/* PC (1400px - 1540px) */
+@media screen and (min-width: 1400px) and (max-width: 1540px) {
+    .attendance-detail-container {
+        max-width: 700px;
+        padding: 30px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .edit-button {
+        width: 110px;
+        font-size: 17px;
+        padding: 10px;
+    }
+}

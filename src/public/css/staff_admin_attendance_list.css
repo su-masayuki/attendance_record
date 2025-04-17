@@ -69,3 +69,54 @@ h1 {
     cursor: pointer;
     margin-top: 20px;
 }
+
+/* Tablet (768px - 850px) */
+@media screen and (min-width: 768px) and (max-width: 850px) {
+    .attendance-list-container {
+        padding: 15px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .date-navigation {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .csv-export {
+        width: 100%;
+        font-size: 14px;
+    }
+}
+
+/* PC (1400px - 1540px) */
+@media screen and (min-width: 1400px) and (max-width: 1540px) {
+    .attendance-list-container {
+        max-width: 1000px;
+        padding: 30px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .csv-export {
+        width: 140px;
+        font-size: 17px;
+    }
+}

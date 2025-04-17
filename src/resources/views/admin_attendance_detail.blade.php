@@ -1,4 +1,4 @@
-@extends('layouts.app')
+<!-- @extends('layouts.app')
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('css/admin_attendance_detail.css') }}">
@@ -83,4 +83,4 @@
         @endif
     </form>
 </div>
-@endsection
+@endsection -->

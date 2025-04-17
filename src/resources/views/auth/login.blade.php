@@ -7,14 +7,17 @@
 @section('content')
 <div class="auth-container">
     <h2>ログイン</h2>
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" novalidate>
         @csrf
-        <input type="email" name="email" placeholder="メールアドレス" value="{{ old('email') }}" required>
+        
+        <label for="email">メールアドレス</label>
+        <input id="email" type="email" name="email" value="{{ old('email') }}">
         @error('email')
             <div class="error-message">{{ $message }}</div>
         @enderror
 
-        <input type="password" name="password" placeholder="パスワード" required>
+        <label for="password">パスワード</label>
+        <input id="password" type="password" name="password">
         @error('password')
             <div class="error-message">{{ $message }}</div>
         @enderror
