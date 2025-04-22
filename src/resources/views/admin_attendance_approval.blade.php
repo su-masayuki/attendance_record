@@ -38,7 +38,7 @@
                 {{ \Carbon\Carbon::parse($clockIn)->format('H:i') }} ~ {{ \Carbon\Carbon::parse($clockOut)->format('H:i') }}
             </td>
         </tr>
-        @foreach ($attendance->breakTimes as $index => $break)
+        @foreach ($latestCorrection->correctionBreaks as $index => $break)
         <tr>
             <th>休憩{{ $index + 1 }}</th>
             <td>

@@ -35,18 +35,25 @@ class StampCorrectionController extends Controller
         $request->validate([
             'target_date' => 'required|date',
             'reason' => 'required|max:255',
-            'break_start' => 'nullable|date_format:H:i', // 追加
-            'break_end' => 'nullable|date_format:H:i',   // 追加
+            'breaks.*.start' => 'nullable|date_format:H:i', // 変更
+            'breaks.*.end' => 'nullable|date_format:H:i',   // 変更
         ]);
 
-        StampCorrection::create([
+        $correction = StampCorrection::create([
             'user_id' => Auth::id(),
             'target_date' => $request->target_date,
             'reason' => $request->reason,
             'status' => '承認待ち',
-            'break_start' => $request->break_start, // 追加
-            'break_end' => $request->break_end,     // 追加
         ]);
+
+        foreach ($request->input('breaks') as $break) {
+            if (!empty($break['start']) && !empty($break['end'])) {
+                $correction->correctionBreaks()->create([
+                    'break_start' => $break['start'],
+                    'break_end' => $break['end'],
+                ]);
+            }
+        }
 
         return redirect()->route('stamp_correction.list')->with('success', '申請を送信しました。');
     }
@@ -68,15 +75,17 @@ class StampCorrectionController extends Controller
             ]);
 
             // 休憩時間の反映
-            if (!empty($correction->break_start) && !empty($correction->break_end)) {
+            if ($correction->correctionBreaks()->exists()) {
                 // 既存の休憩時間を削除
                 $attendance->breakTimes()->delete();
 
                 // 新しい休憩時間を挿入
-                $attendance->breakTimes()->create([
-                    'break_start' => $correction->break_start,
-                    'break_end' => $correction->break_end,
-                ]);
+                foreach ($correction->correctionBreaks as $break) {
+                    $attendance->breakTimes()->create([
+                        'break_start' => $break->break_start,
+                        'break_end' => $break->break_end,
+                    ]);
+                }
             }
 
             // 申請を「承認済み」に更新

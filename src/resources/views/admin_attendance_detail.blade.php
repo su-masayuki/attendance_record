@@ -1,7 +1,7 @@
-<!-- @extends('layouts.app')
+@extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="{{ asset('css/admin_attendance_detail.css') }}">
+<link rel="stylesheet" href="{{ asset('css/attendance_detail.css') }}">
 @endsection
 
 @section('title', '勤怠詳細_管理者')
@@ -69,9 +69,7 @@
             <tr>
                 <th>備考</th>
                 <td>
-                    <textarea name="note" {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>
-                        {{ trim(old('note', $latestRequest && $latestRequest->reason ? $latestRequest->reason : ($attendance->note ?? ''))) }}
-                    </textarea>
+                    <textarea name="note" {{ auth()->guard('admin')->check() ? '' : ($latestRequest && $latestRequest->status === '承認待ち' ? 'disabled' : '') }}>{{ trim(old('note', $latestRequest && $latestRequest->reason ? $latestRequest->reason : ($attendance->note ?? ''))) }}</textarea>
                 </td>
             </tr>
         </table>
@@ -83,4 +81,4 @@
         @endif
     </form>
 </div>
-@endsection -->
+@endsection

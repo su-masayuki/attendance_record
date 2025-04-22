@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ asset('css/admin_attendance_list.css') }}">
 @endsection
 
-@section('title', '勤怠一覧')
+@section('title', '勤怠一覧_管理者')
 
 @section('content')
 <div class="attendance-list-container">

@@ -15,14 +15,12 @@ class StampCorrection extends Model
         'target_date',
         'clock_in',
         'clock_out',
-        'breaks',
         'reason',
         'status',
         'applied_at',
     ];
 
     protected $casts = [
-        'breaks' => 'array', // JSON カラムとしてキャスト
     ];
 
     public function user()
@@ -36,7 +34,12 @@ class StampCorrection extends Model
     }
 
     public function breakTimes()
-{
-    return $this->hasMany(BreakTime::class, 'attendance_id', 'attendance_id');
-}
+    {
+        return $this->hasMany(BreakTime::class, 'attendance_id', 'attendance_id');
+    }
+
+    public function correctionBreaks()
+    {
+        return $this->hasMany(StampCorrectionBreak::class, 'stamp_correction_id');
+    }
 }

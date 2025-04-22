@@ -49,7 +49,8 @@ Route::middleware(['guest:admin'])->group(function () {
 // 認証済み管理者のルート
 Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('/attendance/list', [AdminAttendanceController::class, 'index'])->name('admin.attendance.list');
-    Route::match(['post', 'put'], '/attendance/{id}', [AttendanceController::class, 'update'])->name('admin.attendance.update');
+    Route::get('/attendance/{id}', [AdminAttendanceController::class, 'show'])->name('admin.attendance.detail');
+    Route::post('/attendance/{id}/update', [AdminAttendanceController::class, 'update'])->name('admin.attendance.update');
     Route::get('/staff/list', [AdminStaffController::class, 'index'])->name('admin.staff.list');
     Route::get('/staff/attendance/{id}', [AdminStaffAttendanceController::class, 'index'])->name('admin.attendance.staff');
     Route::get('/attendance/staff/{id}', [AdminStaffAttendanceController::class, 'index'])->name('admin.attendance.staff_list');

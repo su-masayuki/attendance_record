@@ -4,11 +4,11 @@
 <link rel="stylesheet" href="{{ asset('css/attendance_list.css') }}">
 @endsection
 
-@section('title', '勤怠一覧')
+@section('title', '勤怠一覧_一般ユーザー')
 
 @section('content')
 <div class="attendance-list-container">
-    <h1>勤怠一覧</h1>
+    <h2>勤怠一覧</h2>
     <div class="month-selector">
         <a href="{{ route('attendance.list', ['month' => $currentMonth->copy()->subMonth()->format('Y-m')]) }}" class="prev-month">&larr; 前月</a>
         <span class="current-month">{{ $currentMonth->format('Y/m') }}</span>
@@ -34,11 +34,16 @@
                 <td>{{ \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') }}</td>
                 <td>
                     @php
-                        $totalBreakMinutes = $attendance->breakTimes->reduce(function ($carry, $break) {
-                            $start = \Carbon\Carbon::parse($break->break_start);
-                            $end = \Carbon\Carbon::parse($break->break_end);
-                            return $carry + ($end && $start ? $end->diffInMinutes($start) : 0);
-                        }, 0);
+                        $totalBreakMinutes = 0;
+                        if ($attendance->relationLoaded('breakTimes') && $attendance->breakTimes instanceof \Illuminate\Support\Collection) {
+                            foreach ($attendance->breakTimes as $break) {
+                                if (!empty($break->break_start) && !empty($break->break_end)) {
+                                    $start = \Carbon\Carbon::parse($break->break_start);
+                                    $end = \Carbon\Carbon::parse($break->break_end);
+                                    $totalBreakMinutes += $end->diffInMinutes($start);
+                                }
+                            }
+                        }
                     @endphp
                     {{ $totalBreakMinutes > 0 ? \Carbon\CarbonInterval::minutes($totalBreakMinutes)->cascade()->format('%H:%I') : '00:00' }}
                 </td>

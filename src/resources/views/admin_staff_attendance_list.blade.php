@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="{{ asset('css/admin_staff_attendance_list.css') }}">
+<link rel="stylesheet" href="{{ asset('css/attendance_list.css') }}">
 @endsection
 
 @section('title', $staff->name . 'さんの勤怠')
