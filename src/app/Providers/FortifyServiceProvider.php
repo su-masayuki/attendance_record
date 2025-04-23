@@ -20,6 +20,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Features;
 use Laravel\Fortify\Http\Requests\LoginRequest;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -38,6 +39,13 @@ class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Log::debug('🔥 FortifyServiceProvider boot 実行中');
+        Fortify::ignoreRoutes(); // optional: if you're using custom routes
+
+        config(['fortify.features' => [
+            Features::registration(),
+            Features::emailVerification(), // ←これを追加
+        ]]);
+
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::registerView(function () {
             return view('auth.register');
@@ -115,4 +123,6 @@ class FortifyServiceProvider extends ServiceProvider
 
         App::bind(LoginRequest::class, CustomLoginRequest::class);
     }
+
+    
 }

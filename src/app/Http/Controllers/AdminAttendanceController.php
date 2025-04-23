@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\AdminAttendanceUpdateRequest;
 use App\Models\Attendance;
 use App\Models\StampCorrection;
 use Carbon\Carbon;
@@ -84,15 +85,8 @@ class AdminAttendanceController extends Controller
         return redirect()->route('admin.attendance.approval', ['attendance_correct_request' => $correction->id])
                          ->with('success', '修正申請を承認しました。');
     }
-    public function update(Request $request, $id)
+    public function update(AdminAttendanceUpdateRequest $request, $id)
     {
-        $request->validate([
-            'clock_in' => 'required|date_format:H:i',
-            'clock_out' => 'required|date_format:H:i|after:clock_in',
-            'break_start' => 'nullable|date_format:H:i',
-            'break_end' => 'nullable|date_format:H:i|after:break_start',
-            'note' => 'required|string|max:255',
-        ]);
 
         $attendance = Attendance::findOrFail($id);
         $attendance->clock_in = Carbon::parse($attendance->date)->setTimeFromTimeString($request->clock_in);

@@ -11,6 +11,7 @@ use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\AdminLoginController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,3 +80,19 @@ Route::middleware(['web'])->post('/logout', function (Request $request) {
     // 管理者なら管理者ログイン画面へ、一般ユーザーなら通常ログイン画面へ
     return redirect($user && $user->is_admin ? '/admin/login' : '/login');
 })->name('logout');
+// メール認証リンクからの遷移先
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill(); // 認証完了処理
+    return redirect('/attendance'); // 認証後に勤怠画面へ
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+// 認証待ち画面
+Route::get('/email/verify', function () {
+    return view('auth.verify');
+})->middleware('auth')->name('verification.notice');
+
+// 認証メール再送処理
+Route::post('/email/verification-notification', function () {
+    request()->user()->sendEmailVerificationNotification();
+    return back()->with('message', '認証メールを再送しました。');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');

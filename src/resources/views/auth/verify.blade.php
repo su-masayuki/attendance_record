@@ -8,6 +8,9 @@
 <div class="auth-container">
     <p>登録していただいたメールアドレスに認証メールを送付しました。メール認証を完了してください。</p>
     <a href="{{ route('verification.notice') }}" class="button">認証はこちらから</a>
-    <a href="{{ route('verification.resend') }}">認証メールを再送する</a>
+    <form method="POST" action="{{ route('verification.send') }}">
+        @csrf
+        <button type="submit" class="button">認証メールを再送する</button>
+    </form>
 </div>
 @endsection
