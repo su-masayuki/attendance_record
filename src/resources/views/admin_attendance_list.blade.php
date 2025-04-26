@@ -11,7 +11,9 @@
     <h1>{{ $selectedDate instanceof \Carbon\Carbon ? $selectedDate->format('Y年m月d日') : $selectedDate }}の勤怠</h1>
     <div class="date-navigation">
         <a href="{{ route('admin.attendance.list', ['date' => $selectedDate instanceof \Carbon\Carbon ? $selectedDate->copy()->subDay()->format('Y-m-d') : \Carbon\Carbon::parse($selectedDate)->subDay()->format('Y-m-d')]) }}">&larr; 前日</a>
-        <span>{{ $selectedDate instanceof \Carbon\Carbon ? $selectedDate->format('Y/m/d') : $selectedDate }}</span>
+        <form method="GET" action="{{ route('admin.attendance.list') }}" style="display: inline-block;">
+            <input type="date" name="date" value="{{ $selectedDate instanceof \Carbon\Carbon ? $selectedDate->format('Y-m-d') : \Carbon\Carbon::parse($selectedDate)->format('Y-m-d') }}" onchange="this.form.submit()" style="padding: 5px; font-size: 16px;">
+        </form>
         <a href="{{ route('admin.attendance.list', ['date' => $selectedDate instanceof \Carbon\Carbon ? $selectedDate->copy()->addDay()->format('Y-m-d') : \Carbon\Carbon::parse($selectedDate)->addDay()->format('Y-m-d')]) }}">翌日 &rarr;</a>
     </div>
 

@@ -9,9 +9,10 @@
 
 .month-selector {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    padding: 0 20px;
 }
 
 .month-selector a {
@@ -143,4 +144,19 @@
 .attendance-table td {
     font-size: 14px;
     white-space: nowrap;
+}
+.calendar-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.calendar-selector img {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
 }

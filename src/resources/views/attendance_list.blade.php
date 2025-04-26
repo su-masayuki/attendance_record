@@ -11,6 +11,9 @@
     <h2>勤怠一覧</h2>
     <div class="month-selector">
         <a href="{{ route('attendance.list', ['month' => $currentMonth->copy()->subMonth()->format('Y-m')]) }}" class="prev-month">&larr; 前月</a>
+        <form method="GET" action="{{ route('attendance.list') }}" style="display: inline-block; margin: 0 20px;">
+            <input type="month" name="month" value="{{ $currentMonth->format('Y-m') }}" onchange="this.form.submit()" style="padding: 5px; font-size: 16px;">
+        </form>
         <span class="current-month">{{ $currentMonth->format('Y/m') }}</span>
         <a href="{{ route('attendance.list', ['month' => $currentMonth->copy()->addMonth()->format('Y-m')]) }}" class="next-month">翌月 &rarr;</a>
     </div>
