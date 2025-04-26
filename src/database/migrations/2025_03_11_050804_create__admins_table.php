@@ -32,6 +32,6 @@ class CreateAdminsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('admins'); // 修正: 正しいテーブル名
+        Schema::dropIfExists('admins');
     }
 }

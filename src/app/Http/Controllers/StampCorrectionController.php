@@ -8,15 +8,12 @@ use App\Models\StampCorrection;
 
 class StampCorrectionController extends Controller
 {
-    /**
-     * 申請一覧を表示
-     */
     public function index(Request $request)
     {
         if (Auth::guard('admin')->check()) {
-            $query = StampCorrection::query(); // 管理者は全件取得
+            $query = StampCorrection::query();
         } else {
-            $query = StampCorrection::where('user_id', Auth::id()); // 一般ユーザーは自分の申請のみ
+            $query = StampCorrection::where('user_id', Auth::id());
         }
 
         $status = $request->query('status', '承認待ち');
@@ -27,16 +24,13 @@ class StampCorrectionController extends Controller
         return view('stamp_correction_list', compact('requests', 'status'));
     }
 
-    /**
-     * 申請の作成
-     */
     public function store(Request $request)
     {
         $request->validate([
             'target_date' => 'required|date',
             'reason' => 'required|max:255',
-            'breaks.*.start' => 'nullable|date_format:H:i', // 変更
-            'breaks.*.end' => 'nullable|date_format:H:i',   // 変更
+            'breaks.*.start' => 'nullable|date_format:H:i',
+            'breaks.*.end' => 'nullable|date_format:H:i',
         ]);
 
         $correction = StampCorrection::create([
@@ -58,28 +52,21 @@ class StampCorrectionController extends Controller
         return redirect()->route('stamp_correction.list')->with('success', '申請を送信しました。');
     }
 
-    /**
-     * 申請の承認
-     */
     public function approve($id)
     {
         $correction = StampCorrection::findOrFail($id);
         $attendance = $correction->attendance;
 
         if ($attendance) {
-            // 出勤・退勤・備考の更新
             $attendance->update([
                 'clock_in' => $correction->clock_in ?? $attendance->clock_in,
                 'clock_out' => $correction->clock_out ?? $attendance->clock_out,
                 'note' => $correction->reason ?? $attendance->note,
             ]);
 
-            // 休憩時間の反映
             if ($correction->correctionBreaks()->exists()) {
-                // 既存の休憩時間を削除
                 $attendance->breakTimes()->delete();
 
-                // 新しい休憩時間を挿入
                 foreach ($correction->correctionBreaks as $break) {
                     $attendance->breakTimes()->create([
                         'break_start' => $break->break_start,
@@ -88,7 +75,6 @@ class StampCorrectionController extends Controller
                 }
             }
 
-            // 申請を「承認済み」に更新
             $correction->update(['status' => '承認済み']);
         }
 

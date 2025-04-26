@@ -10,9 +10,9 @@ class BreakTimeSeeder extends Seeder
 {
     public function run()
     {
-        $attendance = Attendance::first();
+        $attendances = Attendance::all();
 
-        if ($attendance) {
+        foreach ($attendances as $attendance) {
             BreakTime::create([
                 'attendance_id' => $attendance->id,
                 'break_start' => '12:00:00',

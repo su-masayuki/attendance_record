@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User; // Userモデルを使用
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
@@ -26,8 +26,8 @@ class StaffSeeder extends Seeder
                 [
                     'name' => $staff['name'],
                     'email' => $staff['email'],
-                    'password' => Hash::make('password'), // デフォルトパスワード
-                    'is_admin' => false, // 一般ユーザーとして登録
+                    'password' => Hash::make('password'),
+                    'is_admin' => false,
                 ]
             );
         }

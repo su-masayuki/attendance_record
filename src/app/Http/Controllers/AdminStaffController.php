@@ -9,7 +9,7 @@ class AdminStaffController extends Controller
 {
     public function index()
     {
-        $staffs = User::where('is_admin', false)->get(); // 管理者でないユーザーを取得
+        $staffs = User::where('is_admin', false)->get();
         return view('admin_staff_list', compact('staffs'));
     }
 }

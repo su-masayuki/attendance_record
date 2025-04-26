@@ -8,7 +8,7 @@ class SubmitCorrectionRequest extends FormRequest
 {
     public function authorize()
     {
-        return true; // 認証済ユーザーなら誰でも許可
+        return true; 
     }
 
     public function rules()

@@ -16,20 +16,18 @@ class AdminStaffAttendanceController extends Controller
             ? Carbon::createFromFormat('Y-m', request()->query('month'))->startOfMonth()
             : Carbon::now()->startOfMonth();
 
-        // 指定したスタッフの当月の勤怠情報を取得
         $attendances = Attendance::where('user_id', $id)
             ->whereYear('date', $month->year)
             ->whereMonth('date', $month->month)
             ->get();
 
-        // ビュー名を正しいものに修正
         return view('admin_staff_attendance_list', compact('staff', 'attendances', 'month'));
     }
 
     public function show($id, $attendanceId)
     {
         $staff = User::findOrFail($id);
-            $attendance = Attendance::with('breakTimes')->findOrFail($attendanceId);
+        $attendance = Attendance::with('breakTimes')->findOrFail($attendanceId);
 
         return view('admin_staff_attendance_detail', compact('staff', 'attendance'));
     }
@@ -50,7 +48,7 @@ class AdminStaffAttendanceController extends Controller
         $csvHeader = ['日付', '出勤', '退勤', '休憩合計', '勤務時間', '詳細'];
         $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($attendances, $csvHeader) {
             $stream = fopen('php://output', 'w');
-            fputs($stream, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
+            fputs($stream, chr(0xEF) . chr(0xBB) . chr(0xBF));
             fputcsv($stream, $csvHeader);
 
             foreach ($attendances as $attendance) {

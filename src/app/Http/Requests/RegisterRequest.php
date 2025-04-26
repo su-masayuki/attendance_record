@@ -8,7 +8,7 @@ class RegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // 認証不要のため true にする
+        return true; 
     }
 
     public function rules(): array

@@ -8,7 +8,7 @@ class AdminAttendanceUpdateRequest extends FormRequest
 {
     public function authorize()
     {
-        return true; // 管理者認証はルートやミドルウェアで制御する
+        return true; 
     }
 
     public function rules()

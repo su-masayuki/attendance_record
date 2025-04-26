@@ -8,16 +8,13 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Attendance;
 use App\Models\StampCorrection;
-use App\Models\User; 
+use App\Models\User;
 use App\Models\BreakTime;
 use App\Http\Requests\SubmitCorrectionRequest;
 use App\Http\Requests\AdminAttendanceUpdateRequest;
 
 class AttendanceController extends Controller
 {
-    /**
-     * 勤怠登録画面を表示
-     */
     public function index()
     {
         $user = Auth::user();
@@ -27,13 +24,11 @@ class AttendanceController extends Controller
             ->latest()
             ->first();
 
-        // ステータスを判定
         if (!$attendance) {
             $status = '勤務外';
         } elseif ($attendance->clock_out) {
             $status = '退勤済';
         } else {
-            // 最後の休憩がまだ終了していなければ「休憩中」
             $lastBreak = BreakTime::where('attendance_id', $attendance->id)
                 ->latest()
                 ->first();
@@ -52,9 +47,6 @@ class AttendanceController extends Controller
         ]);
     }
 
-    /**
-     * 出勤処理
-     */
     public function startWork()
     {
         Attendance::create([
@@ -66,9 +58,6 @@ class AttendanceController extends Controller
         return redirect()->route('attendance');
     }
 
-    /**
-     * 退勤処理
-     */
     public function endWork()
     {
         $attendance = Attendance::where('user_id', Auth::id())
@@ -83,18 +72,16 @@ class AttendanceController extends Controller
         return redirect()->route('attendance');
     }
 
-    /**
-     * 休憩開始処理
-     */
     public function startBreak()
     {
-        $attendance = Attendance::where('user_id', Auth::id())->whereDate('created_at', today())->first();
+        $attendance = Attendance::where('user_id', Auth::id())
+            ->whereDate('created_at', today())
+            ->first();
 
         if (!$attendance) {
             return redirect()->back()->with('error', '出勤記録がありません。');
         }
 
-        // 休憩を開始（新しいレコードを作成）
         BreakTime::create([
             'attendance_id' => $attendance->id,
             'break_start' => now(),
@@ -106,7 +93,9 @@ class AttendanceController extends Controller
 
     public function endBreak()
     {
-        $attendance = Attendance::where('user_id', Auth::id())->whereDate('created_at', today())->first();
+        $attendance = Attendance::where('user_id', Auth::id())
+            ->whereDate('created_at', today())
+            ->first();
 
         if (!$attendance) {
             return redirect()->back()->with('error', '出勤記録がありません。');
@@ -128,15 +117,13 @@ class AttendanceController extends Controller
         return redirect()->back()->with('success', '休憩終了しました。');
     }
 
-    /**
-     * 勤怠一覧画面を表示
-     */
     public function list(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
         $currentMonth = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
 
-        $attendances = Attendance::with('breakTimes')->where('user_id', Auth::id())
+        $attendances = Attendance::with('breakTimes')
+            ->where('user_id', Auth::id())
             ->whereYear('date', $currentMonth->year)
             ->whereMonth('date', $currentMonth->month)
             ->orderBy('date', 'desc')
@@ -147,31 +134,27 @@ class AttendanceController extends Controller
 
     public function show($id)
     {
-    $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
+        $attendance = Attendance::with('user', 'breakTimes')->findOrFail($id);
 
-    $latestRequest = StampCorrection::with('correctionBreaks')
-        ->where('attendance_id', $attendance->id)
-        ->latest()
-        ->first();
+        $latestRequest = StampCorrection::with('correctionBreaks')
+            ->where('attendance_id', $attendance->id)
+            ->latest()
+            ->first();
 
-    $isAdmin = Auth::guard('admin')->check();
+        $isAdmin = Auth::guard('admin')->check();
 
-    return view('attendance_detail', [
-        'attendance' => $attendance,
-        'latestRequest' => $latestRequest,
-        'isAdmin' => $isAdmin,
-    ]);
+        return view('attendance_detail', [
+            'attendance' => $attendance,
+            'latestRequest' => $latestRequest,
+            'isAdmin' => $isAdmin,
+        ]);
     }
 
-    /**
-     * 勤怠修正申請の送信処理
-     */
     public function submitCorrectionRequest(SubmitCorrectionRequest $request, $id)
     {
         $attendance = Attendance::with('breakTimes')->findOrFail($id);
         $user = auth()->user();
 
-        // 一般ユーザーは修正申請
         $correction = StampCorrection::create([
             'user_id' => $user->id,
             'attendance_id' => $attendance->id,
@@ -215,11 +198,11 @@ class AttendanceController extends Controller
             $start = $break['start'] ?? null;
             $end = $break['end'] ?? null;
             $breakId = $break['id'] ?? null;
- 
+
             if (!empty($start) && !empty($end)) {
                 $startFormatted = Carbon::createFromFormat('Y-m-d H:i', $newDate . ' ' . $start)->format('Y-m-d H:i:s');
                 $endFormatted = Carbon::createFromFormat('Y-m-d H:i', $newDate . ' ' . $end)->format('Y-m-d H:i:s');
- 
+
                 if ($breakId) {
                     $existingBreak = BreakTime::find($breakId);
                     if ($existingBreak) {
@@ -230,7 +213,7 @@ class AttendanceController extends Controller
                         continue;
                     }
                 }
- 
+
                 BreakTime::create([
                     'attendance_id' => $attendance->id,
                     'break_start' => $startFormatted,
@@ -239,12 +222,11 @@ class AttendanceController extends Controller
             }
         }
 
-        // 月次一覧での反映のため、リダイレクト先を修正
         $month = Carbon::parse($newDate)->format('Y-m');
 
         return redirect()->route('admin.attendance.staff', [
             'id' => $attendance->user_id,
-            'month' => $month
+            'month' => $month,
         ])->with('success', '勤怠情報を更新しました。');
     }
 }

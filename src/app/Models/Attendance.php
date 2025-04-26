@@ -32,14 +32,14 @@ class Attendance extends Model
     }
 
     public function stampCorrections()
-{
-    return $this->hasMany(StampCorrection::class, 'attendance_id');
-}
+    {
+        return $this->hasMany(StampCorrection::class, 'attendance_id');
+    }
 
-public function stampCorrection()
-{
-    return $this->hasOne(StampCorrection::class, 'attendance_id')->latest(); 
-}
+    public function stampCorrection()
+    {
+        return $this->hasOne(StampCorrection::class, 'attendance_id')->latest(); 
+    }
 
     public function breakTimes()
     {

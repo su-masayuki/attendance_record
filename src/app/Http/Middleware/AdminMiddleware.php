@@ -11,7 +11,7 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check() || !Auth::user()->is_admin) {
-            return redirect('/admin_login'); // 一般ログイン画面にリダイレクト
+            return redirect('/admin_login'); 
         }
 
         return $next($request);
