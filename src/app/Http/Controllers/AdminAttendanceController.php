@@ -13,7 +13,7 @@ class AdminAttendanceController extends Controller
     public function index(Request $request)
     {
         $selectedDate = Carbon::parse($request->input('date', now()->toDateString()));
-        $attendances = Attendance::with('breakTimes')->whereDate('created_at', $selectedDate->toDateString())->get();
+        $attendances = Attendance::with('breakTimes')->whereDate('date', $selectedDate->toDateString())->get();
 
         return view('admin_attendance_list', compact('attendances', 'selectedDate'));
     }
