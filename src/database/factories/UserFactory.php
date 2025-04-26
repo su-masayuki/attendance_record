@@ -7,8 +7,9 @@ use Illuminate\Support\Str;
 
 class UserFactory extends Factory
 {
+    // ユーザーモデルのファクトリクラス
     /**
-     * Define the model's default state.
+     * ユーザー登録用の初期データ定義
      *
      * @return array
      */
@@ -24,7 +25,7 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * メール認証されていないユーザー状態を定義
      *
      * @return \Illuminate\Database\Eloquent\Factories\Factory
      */

@@ -14,7 +14,7 @@
 
 1. リポジトリをクローン
     ```bash
-    git clone https://github.com/your-repo/attendance_record.git
+    git clone https://github.com/su-masayuki/attendance_record.git
     cd attendance_record
     ```
 
@@ -64,7 +64,30 @@
 
 ## 注意事項
 
-- Mailtrapを使用するため、アカウント作成が必要です。
 - 管理者ログインと一般ユーザーのログインは動線が分かれています。
 
----
+## ログイン情報
+
+### 管理者ログイン
+- メールアドレス: admin@coachtech.com
+- パスワード: password
+
+### 一般ユーザーログイン
+- 西 伶奈  
+  - メールアドレス: reina.n@coachtech.com
+  - パスワード: password
+- 山田 太郎  
+  - メールアドレス: taro.y@coachtech.com
+  - パスワード: password
+- 増田 一世  
+  - メールアドレス: issei.m@coachtech.com
+  - パスワード: password
+- 山本 敬吉  
+  - メールアドレス: keikichi.y@coachtech.com
+  - パスワード: password
+- 秋田 朋美  
+  - メールアドレス: tomomi.a@coachtech.com
+  - パスワード: password
+- 中西 教夫  
+  - メールアドレス: norio.n@coachtech.com
+  - パスワード: password
